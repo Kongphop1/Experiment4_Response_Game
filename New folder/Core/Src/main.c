@@ -46,6 +46,8 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+uint32_t ADCData[2]={0}; // store information from ADC
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +98,9 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
+  // use DMA to ask ADC for value and keep in array
+  HAL_ADC_Start_DMA(&hadc1, ADCData, 2); // DMA continue request and continue scan conversion mode
+  	  	  	  	  	  	  	  	  	  	  // ADCData = container to store value / 4 = size of array to use
   /* USER CODE END 2 */
 
   /* Infinite loop */
