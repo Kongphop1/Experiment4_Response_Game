@@ -58,6 +58,8 @@ static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
+void InputValueONETime(uint32_t X);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -110,6 +112,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }
@@ -304,11 +307,23 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void InputValueONETime(uint32_t X){
+
+}
+
 // Toggle LED with interrupt
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){	// Callback = receive interrupt / GPIO_Pin = has 1 pin that assign when press
 												// EXTI = external interrupt(don't interested in main function)
+	static uint32_t timeStamp = 0;
+	static uint32_t timeDelay = 0;
+
 	if (GPIO_Pin == GPIO_PIN_13){
-		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+		if (HAL_GetTick() - timeStamp >= timeDelay){
+			timeStamp = HAL_GetTick();
+			timeDelay = 1000+((22695477 * ADCData[0]) + ADCData[1])%10000;
+			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+		}
 	}
 }
 
