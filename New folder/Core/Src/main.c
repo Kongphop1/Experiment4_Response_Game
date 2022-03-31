@@ -312,11 +312,13 @@ static void MX_GPIO_Init(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){	// Callback = receive interrupt / GPIO_Pin = has 1 pin that assign when press
 												// EXTI = external interrupt(don't interested in main function)
 
-	if (GPIO_Pin == GPIO_PIN_13){
-		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	 static GPIO_PinState B1State[2] = { 0 };
+	 B1State[0] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+	 if (B1State[1] == GPIO_PIN_SET && B1State[0] == GPIO_PIN_RESET){
 
-		}
-	}
+	 }
+
+
 }
 
 
