@@ -47,6 +47,11 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 uint32_t ADCData[2]={0}; // store information from ADC
+uint32_t TimeCount = 0;
+uint32_t Timerelease = 0;
+uint32_t TimeHAL = 0;
+
+/* USER CODE END PV */
 
 
 /* USER CODE END PV */
@@ -58,8 +63,6 @@ static void MX_USART2_UART_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
-
-void InputValueONETime(uint32_t X);
 
 /* USER CODE END PFP */
 
@@ -104,6 +107,7 @@ int main(void)
   // use DMA to ask ADC for value and keep in array
   HAL_ADC_Start_DMA(&hadc1, ADCData, 2); // DMA continue request and continue scan conversion mode
   	  	  	  	  	  	  	  	  	  	  // ADCData = container to store value / 4 = size of array to use
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -308,21 +312,36 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-// Toggle LED with interrupt
+// This is Function Interrupt
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){	// Callback = receive interrupt / GPIO_Pin = has 1 pin that assign when press
 												// EXTI = external interrupt(don't interested in main function)
 
-	 static GPIO_PinState B1State[2] = { 0 };
-	 B1State[0] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
-	 if (B1State[1] == GPIO_PIN_SET && B1State[0] == GPIO_PIN_RESET){
+	static uint8_t checkstate = 0;
 
-	 }
-
-
+	switch (checkstate){
+		case 0 :
+			if (GPIO_Pin == GPIO_PIN_13){	//detect when rissing and falling
+				HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+				TimeHAL = HAL_GetTick();	// HAL_GetTick() is continue counting and assign to TimeHAl
+				Timerelease = 1000 + ((22695477 * ADCData[0]) + ADCData[1]) % 10000; // make random number
+				checkstate = 1;
+			}
+			break;
+		case 1 :
+			if (GPIO_Pin == GPIO_PIN_13){
+				TimeCount = HAL_GetTick() - TimeHAL;
+				checkstate = 0;
+			}
+			break;
+	}
 }
 
-
-
+// This is loop interrupt
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){ // God loop // like the loop function that is interrupt
+	if (HAL_GetTick() - TimeHAL > Timerelease){		// if the loop continue to Timerelease do in the if-statement
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	}
+}
 
 
 /* USER CODE END 4 */
